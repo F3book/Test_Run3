@@ -36,20 +36,7 @@ public class XYSRP_Flow {
 	static String strDate;
 	public static String FlynasURL;
 
-	@BeforeMethod
-	public void setup() throws InterruptedException { 
-		FirefoxOptions options = new
-				FirefoxOptions();  
-				options.addPreference("layout.css.devPixelsPerPx", "0.3");
-				options.addPreference("permissions.default.image", 2);
-				options.addArguments("--headless");
-				driver = new FirefoxDriver(options);
-				driver.manage().window().maximize();
-				driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
-				driver.manage().deleteAllCookies();
-				 //driver.get("https://booking.flynas.com/#/booking/search-redirect?origin=JED&destination=EG1&currency=SAR&departureDate=2025-12-18&flightMode=oneway&adultCount=1");
-		
-	}
+
 
 	@Test(priority = 1)
 	public void test() throws Exception {
@@ -88,19 +75,26 @@ public class XYSRP_Flow {
 	            } else if ("DXB".equals(data.From)) {
 	                data.From = "AE1";
 	            }
-	            try {
-	                Date depDate = new SimpleDateFormat("dd MMM yyyy").parse(data.DepartureDate);
-	                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-	                String strDate = formatter.format(depDate);
-	                System.out.println("strDate :" + strDate);
-	                FlynasURL = "https://booking.flynas.com/#/booking/search-redirect?origin=" + data.From + "&destination=" + data.To + "&currency=SAR&departureDate=" + strDate + "&flightMode=oneway&adultCount=1&childCount=0&infantCount=0";
-	                System.out.println("API URL " + FlynasURL);
-	                PnrDetails = data;
-	                driver.get(FlynasURL);
-	                new BaseClass(driver);
-	                Flynas.FlightDetails(driver, PnrDetails);
-	                Flynas.search(driver);
-       	        	Thread.sleep(3000);
+				try {
+					Date depDate = new SimpleDateFormat("dd MMM yyyy").parse(data.DepartureDate);
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+					String strDate = formatter.format(depDate);
+					System.out.println("strDate :" + strDate);
+					FlynasURL = "https://booking.flynas.com/#/booking/search-redirect?origin=" + data.From+ "&destination=" + data.To + "&currency=SAR&departureDate=" + strDate+ "&flightMode=oneway&adultCount=1&childCount=0&infantCount=0";
+					System.out.println("API URL " + FlynasURL);
+					PnrDetails = data;
+					FirefoxOptions options = new FirefoxOptions();
+					options.addPreference("layout.css.devPixelsPerPx", "0.3");
+					options.addPreference("permissions.default.image", 2);
+					options.addArguments("--headless");
+					driver = new FirefoxDriver(options);
+					driver.manage().window().maximize();
+					driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
+					driver.manage().deleteAllCookies();
+					driver.get(FlynasURL);
+					new BaseClass(driver);
+					Flynas.FlightDetails(driver, PnrDetails);
+					driver.quit();
 
 	            } catch (Exception e) {
 	                
