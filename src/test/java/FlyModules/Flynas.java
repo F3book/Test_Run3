@@ -42,49 +42,37 @@ public class Flynas extends XYSRP_Flow {
 	{
 		
 		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));// Set the maximum wait time to 60 seconds
-			boolean isPageLoaded = false;
+		boolean isPageLoaded = false;
 		int maxAttempts = 2;
 		int attempt = 1;
-		try {
-	        	WebElement NoThanks = driver.findElement(By.xpath("//button[text()='No Thanks']"));
-	        	NoThanks.click();
-	        	Thread.sleep(1000);
-	        }catch (Exception e) {
-	        	
-	        }
+		/*try {
+        	WebElement okButton = driver.findElement(By.xpath("//button[contains(@class, 'btn btn-primary') and text()='OK']"));
+        	okButton.click();
+        	Thread.sleep(1000);
+        }catch (Exception e) {
+        	
+        }*/
 		while (!isPageLoaded && attempt <= maxAttempts) {
 		    try {
 		        // Wait for the page to load completely
 		        isPageLoaded = wait.until(ExpectedConditions.urlContains("https://booking.flynas.com/#/booking/flights"));
 		    } catch (Exception e) {
-		   
-		    	try {
-		    	driver.manage().deleteAllCookies();
-		    	search(driver);
-		    	driver.manage().deleteAllCookies();
+		        // Timeout occurred, handle the situation
+		        System.out.println("Page didn't load within 60 seconds on attempt " + attempt + ". Clearing cookies...");
+		        driver.manage().deleteAllCookies();
 		        // Refresh the page
 		        driver.get(FlynasURL);
-		        Thread.sleep(10000);
+		        Thread.sleep(4000);
 		        System.out.println("Cookies deleted. Page refreshed.");
-		        }
-		    	catch (Exception e1) {
-		    		try {
-		    		 isPageLoaded = wait.until(ExpectedConditions.urlContains("https://booking.flynas.com/#/booking/flights"));
-		    		}
-		    		catch (Exception e2) {
-				    	driver.manage().deleteAllCookies();
-				    	search(driver);
-				    	driver.manage().deleteAllCookies();
-				        // Refresh the page
-				        driver.get(FlynasURL);
-				        Thread.sleep(10000);
-				        System.out.println("Cookies deleted. Page refreshed.");
-				        }
-		    	}
-		    	
 		    }
 
 		    attempt++;
+		}
+
+		if (isPageLoaded) {
+		    System.out.println("Page loaded successfully.");
+		} else {
+		    System.out.println("Page didn't load after " + maxAttempts + " attempts.");
 		}
 
 		Actions actions = new Actions(driver);
@@ -505,35 +493,7 @@ public static void XY_FlightDetailsSending_Economy(WebDriver driver,Database Pnr
 				if ("00.0".equals(economy)) {
 				    economy = "00.0";
 				} else {
-				    // Convert economy to a double
-				    double economyValue = Double.parseDouble(economy);
-
-				    // Check if economy price is more than 1000
-				    if (economyValue > 1000) {
-				    	 // Subtract a dynamic value between 57 and 64 for each flight
-				    	double dynamicSubtract = Math.min(Math.random() * 5 + 5, economyValue); // Ensure subtraction doesn't make the fare negative
-				    	economyValue -= dynamicSubtract;
-				    }
-				    // Check if economy price is more than 500
-				    else if (economyValue > 500) {
-				    	 // Subtract a dynamic value between 27 and 34 for each flight
-				    	double dynamicSubtract = Math.min(Math.random() * 5 + 1, economyValue); // Ensure subtraction doesn't make the fare negative
-				    	economyValue -= dynamicSubtract;
-				       
-				    } else {
-				    	// Subtract a dynamic value between 16 and 23 for each flight
-		                double dynamicSubtract = Math.min(Math.random() * 5 + 1, economyValue); // Ensure subtraction doesn't make the fare negative
-		                economyValue -= dynamicSubtract;
-				    }
-
-				 // Ensure the value does not go below 0
-				    economyValue = Math.max(economyValue, 0);
-				    // Convert it back to a string
-				 // Format it back to a string with 2 decimal places
-		            DecimalFormat decimalFormat = new DecimalFormat("#0.00");
-		            economy = decimalFormat.format(economyValue);
-
-				    
+					
 				}
 				
 				

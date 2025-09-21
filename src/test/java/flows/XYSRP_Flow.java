@@ -70,7 +70,7 @@ public class XYSRP_Flow {
 	    // Ensure there are at least 40 routes to avoid IndexOutOfBoundsException
 	    if (databaseList.size() >= 76) {
 	        // Get routes from 31st to 40th (index 30 to 39)
-	        List<Database> limitedDatabaseList = databaseList.subList(0, 76);
+	        List<Database> limitedDatabaseList = databaseList.subList(0, 10);
 
 	        // Print the routes first
 	        for (Database data : limitedDatabaseList) {
@@ -98,10 +98,9 @@ public class XYSRP_Flow {
 	                PnrDetails = data;
 	                driver.get(FlynasURL);
 	                new BaseClass(driver);
-	                Thread.sleep(5000);
 	                Flynas.FlightDetails(driver, PnrDetails);
 	                Flynas.search(driver);
-       	        	Thread.sleep(2000);
+       	        	Thread.sleep(3000);
 
 	            } catch (Exception e) {
 	                
