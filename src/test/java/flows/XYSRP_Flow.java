@@ -43,7 +43,7 @@ public class XYSRP_Flow {
 	    setRestAssuredBaseURI();
 	    RequestSpecification request = RestAssured.given();
 	    request.header("Content-Type", "text/json");
-	    Response response = request.get("/Getallroutesbyairline?airline=xy&days=3&skipdays=2&orderby=asc");
+	    Response response = request.get("/Getallroutesbyairline?airline=xy&days=6&skipdays=5&orderby=asc");
 	    //System.out.println("Response body: " + response.body().asString());
 	    String s = response.body().asString();
 	    //System.out.println(s);
