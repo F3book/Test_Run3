@@ -74,6 +74,7 @@ public class Flynas extends XYSRP_Flow {
 		    System.out.println("Page loaded successfully.");
 		} else {
 		    System.out.println("Page didn't load after " + maxAttempts + " attempts.");
+		    return; 
 		}
 
 		Actions actions = new Actions(driver);
