@@ -57,6 +57,11 @@ public class Flynas extends XYSRP_Flow {
 		        // Wait for the page to load completely
 		        isPageLoaded = wait.until(ExpectedConditions.urlContains("https://booking.flynas.com/#/booking/flights"));
 		    } catch (Exception e) {
+		    	try {
+		            System.out.println("Current URL before retry: " + driver.getCurrentUrl());
+		        } catch (Exception urlEx) {
+		            System.out.println("Unable to fetch current URL.");
+		        }
 		        // Timeout occurred, handle the situation
 		        System.out.println("Page didn't load within 60 seconds on attempt " + attempt + ". Clearing cookies...");
 		        driver.manage().deleteAllCookies();
