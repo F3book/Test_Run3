@@ -33,7 +33,7 @@ public class Flynas extends XYSRP_Flow {
 	{
 
 		driver.get("https://accounts.google.com/v3/signin/identifier?dsh=S873427101%3A1670174877878096&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&flowEntry=ServiceLogin&flowName=GlifWebSignIn&rip=1&sacu=1&service=mail&ifkv=ARgdvAv7qIg9j-X7zxwLWrETGRTaquhiB_tbb7YW19ONpQZ-z4IHi9LknQfITZIbwMLY0zXURVL5jg");
-	    Thread.sleep(1500);
+	    Thread.sleep(3000);
 		
 		
 	}
@@ -60,6 +60,7 @@ public class Flynas extends XYSRP_Flow {
 		        // Timeout occurred, handle the situation
 		        System.out.println("Page didn't load within 60 seconds on attempt " + attempt + ". Clearing cookies...");
 		        driver.manage().deleteAllCookies();
+		        Flynas.search(driver);
 		        // Refresh the page
 		        driver.get(FlynasURL);
 		        Thread.sleep(4000);
