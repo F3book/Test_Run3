@@ -5,12 +5,15 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -55,31 +58,63 @@ public class Flynas extends XYSRP_Flow {
 		while (!isPageLoaded && attempt <= maxAttempts) {
 		    try {
 		        // Wait for the page to load completely
-		        isPageLoaded = wait.until(ExpectedConditions.urlContains("https://booking.flynas.com/#/booking/flights"));
+		        isPageLoaded = wait.until(
+		            ExpectedConditions.urlContains("https://booking.flynas.com/#/booking/flights")
+		        );
 		    } catch (Exception e) {
-		    	try {
-		            System.out.println("Current URL before retry: " + driver.getCurrentUrl());
+		        System.out.println("Page didn't load within 25 seconds on attempt " + attempt);
+
+		        // ✅ Print current URL before retry
+		        String currentUrl = "";
+		        try {
+		            currentUrl = driver.getCurrentUrl();
+		            System.out.println("Current URL before retry: " + currentUrl);
 		        } catch (Exception urlEx) {
 		            System.out.println("Unable to fetch current URL.");
 		        }
-		        // Timeout occurred, handle the situation
-		        System.out.println("Page didn't load within 60 seconds on attempt " + attempt + ". Clearing cookies...");
-		        driver.manage().deleteAllCookies();
-		        Flynas.search(driver);
-		        // Refresh the page
-		        driver.get(FlynasURL);
-		        Thread.sleep(4000);
-		        System.out.println("Cookies deleted. Page refreshed.");
-		    }
 
+		        // ✅ If error page, close and reopen browser
+		        if ("https://www.flynas.com/en/error-500".equalsIgnoreCase(currentUrl)) {
+		            System.out.println("❌ Error 500 page detected. Closing and reopening browser...");
+
+		            try {
+		                driver.quit(); // close current session
+		            } catch (Exception quitEx) {
+		                System.out.println("Error while quitting browser: " + quitEx.getMessage());
+		            }
+
+		            // Reopen Firefox with same options
+		            FirefoxOptions options = new FirefoxOptions();
+		            options.addPreference("layout.css.devPixelsPerPx", "0.5");
+		            options.addPreference("permissions.default.image", 2);
+		            options.addArguments("--headless");
+
+		            driver = new FirefoxDriver(options);
+		            driver.manage().window().maximize();
+		            driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
+		            driver.manage().deleteAllCookies();
+
+		            // Reload Flynas URL
+		            driver.get(FlynasURL);
+		            Thread.sleep(4000);
+		            System.out.println("✅ New Firefox browser launched.");
+		        } else {
+		            // Normal retry flow
+		            driver.manage().deleteAllCookies();
+		            Flynas.search(driver);
+		            driver.get(FlynasURL);
+		            Thread.sleep(4000);
+		            System.out.println("Cookies deleted. Page refreshed.");
+		        }
+		    }
 		    attempt++;
 		}
 
 		if (isPageLoaded) {
-		    System.out.println("Page loaded successfully.");
+		    System.out.println("✅ Page loaded successfully.");
 		} else {
-		    System.out.println("Page didn't load after " + maxAttempts + " attempts.");
-		    return; 
+		    System.out.println("❌ Page didn't load after " + maxAttempts + " attempts.");
+		    return;
 		}
 
 		Actions actions = new Actions(driver);
