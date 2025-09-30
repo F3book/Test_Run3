@@ -41,7 +41,7 @@ public class Flynas extends XYSRP_Flow {
 		
 	}
 	
-	public static void FlightDetails(WebDriver driver,Database PnrDetails) throws Exception
+	public static WebDriver FlightDetails(WebDriver driver,Database PnrDetails) throws Exception
 	{
 		
 		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));// Set the maximum wait time to 60 seconds
@@ -64,7 +64,7 @@ public class Flynas extends XYSRP_Flow {
 		    } catch (Exception e) {
 		        System.out.println("Page didn't load within 25 seconds on attempt " + attempt);
 
-		        // ✅ Print current URL before retry
+		        // Print current URL before retry
 		        String currentUrl = "";
 		        try {
 		            currentUrl = driver.getCurrentUrl();
@@ -73,31 +73,18 @@ public class Flynas extends XYSRP_Flow {
 		            System.out.println("Unable to fetch current URL.");
 		        }
 
-		        // ✅ If error page, close and reopen browser
+		        // If 500 error page, close browser and skip route
 		        if ("https://www.flynas.com/en/error-500".equalsIgnoreCase(currentUrl)) {
-		            System.out.println("❌ Error 500 page detected. Closing and reopening browser...");
+		            System.out.println("❌ Error 500 page detected. Closing browser and skipping this route...");
 
 		            try {
-		                driver.quit(); // close current session
+		                driver.quit(); // Close current browser session
 		            } catch (Exception quitEx) {
 		                System.out.println("Error while quitting browser: " + quitEx.getMessage());
 		            }
 
-		            // Reopen Firefox with same options
-		            FirefoxOptions options = new FirefoxOptions();
-		            options.addPreference("layout.css.devPixelsPerPx", "0.5");
-		            options.addPreference("permissions.default.image", 2);
-		            options.addArguments("--headless");
-
-		            driver = new FirefoxDriver(options);
-		            driver.manage().window().maximize();
-		            driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
-		            driver.manage().deleteAllCookies();
-
-		            // Reload Flynas URL
-		            driver.get(FlynasURL);
-		            Thread.sleep(4000);
-		            System.out.println("✅ New Firefox browser launched.");
+		            // Exit method immediately to skip this route
+		            return driver; // or return null if your calling code can handle failure
 		        } else {
 		            // Normal retry flow
 		            driver.manage().deleteAllCookies();
@@ -110,11 +97,12 @@ public class Flynas extends XYSRP_Flow {
 		    attempt++;
 		}
 
+
 		if (isPageLoaded) {
 		    System.out.println("✅ Page loaded successfully.");
 		} else {
 		    System.out.println("❌ Page didn't load after " + maxAttempts + " attempts.");
-		    return;
+		    return driver;
 		}
 
 		Actions actions = new Actions(driver);
