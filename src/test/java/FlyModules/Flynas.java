@@ -41,244 +41,159 @@ public class Flynas extends XYSRP_Flow {
 		
 	}
 	
-	public static WebDriver FlightDetails(WebDriver driver,Database PnrDetails) throws Exception
-	{
-		
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));// Set the maximum wait time to 60 seconds
-		boolean isPageLoaded = false;
-		int maxAttempts = 2;
-		int attempt = 1;
-		/*try {
-        	WebElement okButton = driver.findElement(By.xpath("//button[contains(@class, 'btn btn-primary') and text()='OK']"));
-        	okButton.click();
-        	Thread.sleep(1000);
-        }catch (Exception e) {
-        	
-        }*/
-		while (!isPageLoaded && attempt <= maxAttempts) {
-		    try {
-		        // Wait for the page to load completely
-		        isPageLoaded = wait.until(
-		            ExpectedConditions.urlContains("https://booking.flynas.com/#/booking/flights")
-		        );
-		    } catch (Exception e) {
-		        System.out.println("Page didn't load within 25 seconds on attempt " + attempt);
+	public static WebDriver FlightDetails(WebDriver driver, Database PnrDetails) throws Exception {
+	    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));
+	    boolean isPageLoaded = false;
+	    int maxAttempts = 2;
+	    int attempt = 1;
 
-		        // Print current URL before retry
-		        String currentUrl = "";
-		        try {
-		            currentUrl = driver.getCurrentUrl();
-		            System.out.println("Current URL before retry: " + currentUrl);
-		        } catch (Exception urlEx) {
-		            System.out.println("Unable to fetch current URL.");
-		        }
+	    while (!isPageLoaded && attempt <= maxAttempts) {
+	        try {
+	            // Wait for the Flynas booking page to load
+	            isPageLoaded = wait.until(
+	                    ExpectedConditions.urlContains("https://booking.flynas.com/#/booking/flights")
+	            );
+	        } catch (Exception e) {
+	            System.out.println("Page didn't load within 25 seconds on attempt " + attempt);
 
-		        // If 500 error page, close browser and skip route
-		        if ("https://www.flynas.com/en/error-500".equalsIgnoreCase(currentUrl)) {
-		            System.out.println("❌ Error 500 page detected. Closing browser and skipping this route...");
+	            // Fetch current URL
+	            String currentUrl = "";
+	            try {
+	                currentUrl = driver.getCurrentUrl();
+	                System.out.println("Current URL before retry: " + currentUrl);
+	            } catch (Exception urlEx) {
+	                System.out.println("Unable to fetch current URL.");
+	            }
 
-		            try {
-		                driver.quit(); // Close current browser session
-		            } catch (Exception quitEx) {
-		                System.out.println("Error while quitting browser: " + quitEx.getMessage());
-		            }
+	            // If 500 error page, quit and skip
+	            if ("https://www.flynas.com/en/error-500".equalsIgnoreCase(currentUrl)) {
+	                System.out.println("❌ Error 500 page detected. Closing browser and skipping this route...");
+	                try {
+	                    driver.quit();
+	                } catch (Exception quitEx) {
+	                    System.out.println("Error while quitting browser: " + quitEx.getMessage());
+	                }
+	                return null; // skip route
+	            } else {
+	                // Normal retry: delete cookies, refresh page
+	                driver.manage().deleteAllCookies();
+	                Flynas.search(driver);
+	                driver.get(FlynasURL);
+	                Thread.sleep(4000);
+	                System.out.println("Cookies deleted. Page refreshed.");
+	            }
+	        }
+	        attempt++;
+	    }
 
-		            // Exit method immediately to skip this route
-		            return driver; // or return null if your calling code can handle failure
-		        } else {
-		            // Normal retry flow
-		            driver.manage().deleteAllCookies();
-		            Flynas.search(driver);
-		            driver.get(FlynasURL);
-		            Thread.sleep(4000);
-		            System.out.println("Cookies deleted. Page refreshed.");
-		        }
-		    }
-		    attempt++;
-		}
+	    if (!isPageLoaded) {
+	        System.out.println("❌ Page didn't load after " + maxAttempts + " attempts.");
+	        return driver;
+	    } else {
+	        System.out.println("✅ Page loaded successfully.");
+	    }
 
+	    Actions actions = new Actions(driver);
 
-		if (isPageLoaded) {
-		    System.out.println("✅ Page loaded successfully.");
-		} else {
-		    System.out.println("❌ Page didn't load after " + maxAttempts + " attempts.");
-		    return driver;
-		}
+	    // Wait for 'Back' button to appear
+	    boolean displayed = false;
+	    do {
+	        try {
+	            displayed = driver.findElement(By.xpath("//button[contains(text(),'Back')]")).isDisplayed();
+	        } catch (Exception e) {
+	            driver.get(FlynasURL);
+	            Thread.sleep(4000);
+	        }
+	    } while (!displayed);
 
-		Actions actions = new Actions(driver);
-			
-		try{
-		boolean displayed = false;
-		do{
-		  try{
-		    displayed = driver.findElement(By.xpath("//button[contains(text(),'Back')]")).isDisplayed();
-		  } 
-		  catch (Exception e){
-			
-			   driver.get(FlynasURL); 
-			   Thread.sleep(4000);
-		 }
-		} while(!displayed);
-		
-		String departureAirport = PnrDetails.From;
-		String arrivalAirport = PnrDetails.To;
+	    String departureAirport = PnrDetails.From;
+	    String arrivalAirport = PnrDetails.To;
 
-		//String[] airportsToHandle = {"CAI", "SAW", "IST"};
-		String[] airportsToHandle = {"CAI"};
+	    String[] airportsToHandle = {"CAI"};
 
-		if (ArrayUtils.contains(airportsToHandle, departureAirport) || ArrayUtils.contains(airportsToHandle, arrivalAirport)) {
-		    try {
-		        Thread.sleep(2000);
-		        WebElement NoThanks = driver.findElement(By.xpath("//*/text()[normalize-space(.)='No Thanks!']/parent::*"));
-		        NoThanks.click();
-		        Thread.sleep(2000);
-		    } catch (Exception e) {
-		       
-		    }
-		} else {
-		    
-		}
-		try{
-    		WebElement elementToMoveAndClick = driver.findElement(By.xpath("//div[@class='pers-modal__btn-close-icon']"));
-            actions.moveToElement(elementToMoveAndClick).perform();
-            elementToMoveAndClick.click();
-	     }
-    	catch(Exception e){
-    		
-    	}
-		WebElement FromCity=driver.findElement(By.xpath("(.//*[normalize-space(text()) and normalize-space(.)='Modify your Search'])[1]/preceding::span[7]"));
-		From =FromCity.getText();
-		WebElement ToCity=driver.findElement(By.xpath("(.//*[normalize-space(text()) and normalize-space(.)='Modify your Search'])[1]/preceding::span[5]"));
-		To =ToCity.getText();
-		
-		if ("TR1".equals(From)) {
-			From = "SAW";
-			PnrDetails.From="SAW";
-		} else if ("TR1".equals(To)) {
-			To = "SAW";
-			PnrDetails.To="SAW";
-		} else {
+	    if (ArrayUtils.contains(airportsToHandle, departureAirport) || ArrayUtils.contains(airportsToHandle, arrivalAirport)) {
+	        try {
+	            Thread.sleep(2000);
+	            WebElement NoThanks = driver.findElement(By.xpath("//*/text()[normalize-space(.)='No Thanks!']/parent::*"));
+	            NoThanks.click();
+	            Thread.sleep(2000);
+	        } catch (Exception e) {
+	            // ignore
+	        }
+	    }
 
-		}
-		if ("EG1".equals(From)) {
-		    From = "CAI";
-		    PnrDetails.From="CAI";
-		}
-		else if ("EG1".equals(To)) {
-		    To = "CAI";
-		    PnrDetails.To="CAI";
-		} else {
+	    try {
+	        WebElement elementToMoveAndClick = driver.findElement(By.xpath("//div[@class='pers-modal__btn-close-icon']"));
+	        actions.moveToElement(elementToMoveAndClick).perform();
+	        elementToMoveAndClick.click();
+	    } catch (Exception e) {
+	        // ignore
+	    }
 
-		}
-		if ("AE1".equals(From)) {
-		    From = "DXB";
-		    PnrDetails.From="DXB";
-		}
-		else if ("AE1".equals(To)) {
-		    To = "DXB";
-		    PnrDetails.To="DXB";
-		} else {
+	    // Get From & To city text
+	    WebElement FromCity = driver.findElement(By.xpath("(.//*[normalize-space(text()) and normalize-space(.)='Modify your Search'])[1]/preceding::span[7]"));
+	    From = FromCity.getText();
+	    WebElement ToCity = driver.findElement(By.xpath("(.//*[normalize-space(text()) and normalize-space(.)='Modify your Search'])[1]/preceding::span[5]"));
+	    To = ToCity.getText();
 
-		}
-		
-		try {
-	           
-       	    driver.findElement(By.xpath("//a[contains(@class, 'btn_prev')]")).click();
-            //Thread.sleep(2000);
-       	 int dayCounter = 1; // Initialize a counter for day offset
+	    // Replace special airport codes
+	    if ("TR1".equals(From)) { From = "SAW"; PnrDetails.From = "SAW"; }
+	    if ("TR1".equals(To)) { To = "SAW"; PnrDetails.To = "SAW"; }
+	    if ("EG1".equals(From)) { From = "CAI"; PnrDetails.From = "CAI"; }
+	    if ("EG1".equals(To)) { To = "CAI"; PnrDetails.To = "CAI"; }
+	    if ("AE1".equals(From)) { From = "DXB"; PnrDetails.From = "DXB"; }
+	    if ("AE1".equals(To)) { To = "DXB"; PnrDetails.To = "DXB"; }
 
-        	for (int weekOffset = 0; weekOffset < 10; weekOffset++) {
-           	    for (int dayOffset = 1; dayOffset <= 5; dayOffset++) {
-           	        int totalOffset = weekOffset * 5 + dayOffset;
+	    try {
+	        driver.findElement(By.xpath("//a[contains(@class, 'btn_prev')]")).click();
+	        int dayCounter = 1;
 
-           	        if (totalOffset > 11) {
-           	            break; // Exit the loop if the total days processed exceed 35
-           	        }
-           	        driver.findElement(By.xpath("//a[@class='btn-refresh']")).click();
-           	        String DepartDate = driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[2]")).getText();
-           	        String[] dateParts = DepartDate.split("\\W+");
-           	        int dayInt = Integer.parseInt(dateParts[1]);
-           	        String day = String.format("%02d", dayInt);
-           	        String monthAbbreviation = dateParts[2];
-           	        String Year = "2025";
-           	        if (monthAbbreviation.equals("Nov") || monthAbbreviation.equals("Dec")) {
-           	            Year = "2025";
-           	        } else {
-           	            Year = "2025";
-           	        }
-           	        Depdate = String.format("%s %s %s", day, monthAbbreviation, Year);
-     
-           	        System.out.println("SRP Date: " + Depdate);
-           	        
+	        for (int weekOffset = 0; weekOffset < 10; weekOffset++) {
+	            for (int dayOffset = 1; dayOffset <= 5; dayOffset++) {
+	                int totalOffset = weekOffset * 5 + dayOffset;
+	                if (totalOffset > 11) break;
 
-           	        String FlightsAvailable = driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[1]/span/span")).getText().replaceAll("[\r\n]+", " ");
-           	        //System.out.println(FlightsAvailable); 
-           	        boolean isFlightsAvailable = !FlightsAvailable.contains("Sold") && !FlightsAvailable.contains("No");
-           	        if (isFlightsAvailable) {
-           	            //int dayInt = Integer.parseInt(day);
-           	            driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[1]/span/span")).click();
-           	            Thread.sleep(2000);
-           	            /*try {
-            	        	WebElement okButton = driver.findElement(By.xpath("//button[contains(@class, 'btn btn-primary') and text()='OK']"));
-            	        	okButton.click();
-            	        	Thread.sleep(1000);
-            	        	driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[1]/span/span")).click();
-               	            Thread.sleep(1000);
-            	        }catch (Exception e) {
-            	        	
-            	        }*/
+	                driver.findElement(By.xpath("//a[@class='btn-refresh']")).click();
 
-           	            try {
-           	                boolean isDisplayed = driver.findElement(By.xpath("//span[contains(text(),'" + dayInt + " " + monthAbbreviation + " " + Year + "')]")).isDisplayed();
-           	                if (isDisplayed) {
-           	                	SRP_Flights(driver, PnrDetails);
-           	                } else {
-           	                	Thread.sleep(5000);
-           	                	driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[1]/span/span")).click();
-           	                    Thread.sleep(2000);
-           	                    driver.findElement(By.xpath("//span[contains(text(),'" + dayInt + " " + monthAbbreviation + " " + Year + "')]")).isDisplayed();
-           	                    SRP_Flights(driver, PnrDetails);
-           	                }
-           	            } catch (NoSuchElementException e) {
-           	            	Thread.sleep(5000);
-           	            	driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[1]/span/span")).click();
-       	                    Thread.sleep(2000);
-       	                    driver.findElement(By.xpath("//span[contains(text(),'" + dayInt + " " + monthAbbreviation + " " + Year + "')]")).isDisplayed();
-       	                    SRP_Flights(driver, PnrDetails);
-           	            }
-           	        } else {
-           	            System.out.println("No Flights");
-           	            String From = PnrDetails.From;
-           	            String To = PnrDetails.To;
-           	            List<FadFlightDetails> finalList = new ArrayList<FadFlightDetails>();
-           	            ApiMethods.sendResults(From, To, Depdate, finalList);
-           	        }
+	                String DepartDate = driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[2]")).getText();
+	                String[] dateParts = DepartDate.split("\\W+");
+	                int dayInt = Integer.parseInt(dateParts[1]);
+	                String day = String.format("%02d", dayInt);
+	                String monthAbbreviation = dateParts[2];
+	                String Year = "2025";
+	                Depdate = String.format("%s %s %s", day, monthAbbreviation, Year);
 
-           	        dayCounter++; // Increment the day counter
+	                System.out.println("SRP Date: " + Depdate);
 
-           	        // If it's the last iteration of the inner loop and not the last week, click on the "Next" button
-           	        if (dayOffset == 5 && weekOffset < 9) {
-           	        	driver.findElement(By.xpath("//a[@class='btn-refresh']")).click();
-           	            driver.findElement(By.xpath("//a[contains(@class, 'btn_next')]")).click();
-           	            Thread.sleep(1000);
-           	        }
-           	    }
-           	}
+	                String FlightsAvailable = driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[1]/span/span")).getText().replaceAll("[\r\n]+", " ");
+	                boolean isFlightsAvailable = !FlightsAvailable.contains("Sold") && !FlightsAvailable.contains("No");
 
-           } catch (Exception e) {
-               // Handle exceptions
-               
-           }
-    		
-    		}	
-    	   catch (Exception e){
-    		driver.manage().deleteAllCookies();
-    		driver.get("https://www.iana.org/domains");
-    	}
-		
-		driver.quit();
-    }
-	
+	                if (isFlightsAvailable) {
+	                    driver.findElement(By.xpath("//*[@id='select_departure']/div/ul/li[" + dayCounter + "]/a/span[1]/span/span")).click();
+	                    Thread.sleep(2000);
+	                    SRP_Flights(driver, PnrDetails);
+	                } else {
+	                    System.out.println("No Flights");
+	                    List<FadFlightDetails> finalList = new ArrayList<>();
+	                    ApiMethods.sendResults(PnrDetails.From, PnrDetails.To, Depdate, finalList);
+	                }
+
+	                dayCounter++;
+	                if (dayOffset == 5 && weekOffset < 9) {
+	                    driver.findElement(By.xpath("//a[@class='btn-refresh']")).click();
+	                    driver.findElement(By.xpath("//a[contains(@class, 'btn_next')]")).click();
+	                    Thread.sleep(1000);
+	                }
+	            }
+	        }
+
+	    } catch (Exception e) {
+	        driver.manage().deleteAllCookies();
+	        driver.get("https://www.iana.org/domains");
+	    }
+
+	    return driver; // ✅ always return driver at the end
+	}
 	
 	public static void SRP_Flights(WebDriver driver,Database PnrDetails) throws Exception
 	{
