@@ -2,7 +2,7 @@ name: SRP
 
 on:
   schedule:
-    - cron: '*/30 0-23 * * *'
+    - cron: '*/20 0-23 * * *'
 
 jobs:
   runtests:
