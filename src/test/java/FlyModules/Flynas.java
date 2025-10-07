@@ -76,10 +76,10 @@ public class Flynas extends XYSRP_Flow {
 	                return null; // skip route
 	            } else {
 	                // Normal retry: delete cookies, refresh page
-	                driver.manage().deleteAllCookies();
+	                Flynas.search(driver);
 	                Flynas.search(driver);
 	                driver.get(FlynasURL);
-	                Thread.sleep(4000);
+	                Thread.sleep(6000);
 	                System.out.println("Cookies deleted. Page refreshed.");
 	            }
 	        }
