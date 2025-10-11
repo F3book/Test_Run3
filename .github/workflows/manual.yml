@@ -1,9 +1,14 @@
 name: SRP
 
 on:
+  workflow_dispatch:  # Manual trigger
   schedule:
-    - cron: '*/20 0-23 * * *'
-    - cron: '*/30 0-3 * * *'
+    - cron: '*/20 0-23 * * *'   # Every 20 minutes from 4 AM–11 PM
+    - cron: '*/30 0-3 * * *'    # Every 30 minutes from 12 AM–3:59 AM
+  workflow_run:
+    workflows: ["SRP"]
+    types:
+      - completed
 
 jobs:
   runtests:
@@ -47,14 +52,13 @@ jobs:
       - name: Set up Maven
         run: sudo apt-get install -y maven
 
-      - name: Retry loop
-        id: retry
+      - name: Retry loop (up to 3 attempts)
         run: |
           for i in {1..3}; do
             echo "Attempt $i"
             mvn test && break
             if [ $i -lt 3 ]; then
-              echo "Test failed. Retrying..."
+              echo "Test failed. Retrying in 10s..."
               sleep 10
             else
               echo "Test failed after $i attempts."
